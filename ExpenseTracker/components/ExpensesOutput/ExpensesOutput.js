@@ -39,6 +39,30 @@ const DUMMY_EXPENSES =[
         description: 'drinks',
         amount: 4.99,
         date:new Date('2025-12-14')
+    },
+    {
+        id: 'e7',
+        description: 'a pair of shoes',
+        amount: 59.99,
+        date:new Date('2026-2-14')
+    },
+    {
+        id: 'e8',
+        description: 'a pair of shoes',
+        amount: 59.99,
+        date:new Date('2026-2-14')
+    },
+    {
+        id: 'e9',
+        description: 'a pair of shoes',
+        amount: 59.99,
+        date:new Date('2026-2-14')
+    },
+    {
+        id: 'e10',
+        description: 'a pair of shoes',
+        amount: 59.99,
+        date:new Date('2026-2-14')
     }
 ]
 
