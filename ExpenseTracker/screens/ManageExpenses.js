@@ -1,13 +1,17 @@
-import { useContext, useLayoutEffect } from 'react';
+import { useContext, useLayoutEffect, useState } from 'react';
 import { View, StyleSheet} from 'react-native'
 import IconButton from '../components/UI/iconButton';
 import { GlobalStyles } from '../constants/styles';
 import { ExpensesContext } from '../store/expense-context';
 import ExpenseForm from '../components/manageExpense/ExpenseForm';
+import { storeExpense, updateExpense, deleteExpense } from '../utils/http';
+import LoadingOverlay from '../components/UI/LoadingOverlay';
+import ErrorOverlay from '../components/UI/ErrorOverlay';
 
 
 function ManageExpenses({route, navigation}) {
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState();
     const expenseCtx = useContext(ExpensesContext);
 
     const editedExpenseId = route.params?.expenseId;
@@ -21,22 +25,52 @@ function ManageExpenses({route, navigation}) {
         });
     }, [navigation, isEditing]);
 
-    function deleteExpenseHandler() {
-        expenseCtx.deleteExpese(editedExpenseId);
-        navigation.goBack();
+    async function deleteExpenseHandler() {
+        setIsSubmitting(true);
+        setError(null);
+        try {
+            await deleteExpense(editedExpenseId);
+            expenseCtx.deleteExpese(editedExpenseId);
+            navigation.goBack();
+        } catch (error) {
+            setError('Could not delete expense - Please try again!')
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     function cancelHandler() {
         navigation.goBack();
     }
 
-    function confirmHandler(expenseData) {
-        if (isEditing){
-            expenseCtx.updateExpense(editedExpenseId, expenseData);
-        } else {
-            expenseCtx.addExpense(expenseData);
+    async function confirmHandler(expenseData) {
+        setIsSubmitting(true);
+        setError(null);
+        try {
+            if (isEditing){
+                expenseCtx.updateExpense(editedExpenseId, expenseData);
+                await updateExpense(editedExpenseId, expenseData);
+            } else {
+                const id = await storeExpense(expenseData);
+                expenseCtx.addExpense({...expenseData, id:id});
+            }
+            navigation.goBack();
+        } catch (error) {
+            setError('Could not save expense - Please try again!');
+        } finally {
+            setIsSubmitting(false);
         }
-        navigation.goBack();
+    }
+
+    function errorHandler() {
+        setError(null);
+    }
+    if (error && !isSubmitting) {
+        return <ErrorOverlay message={error} onConfirm={errorHandler}/>
+    }
+
+    if (isSubmitting){
+        return <LoadingOverlay />
     }
 
     return (
